@@ -1,35 +1,26 @@
 <template>
   <div>
     <h3>Weather Information for Selected City</h3>
-    <select v-model="selectedCity" @change="fetchWeather" class="form-select" style="margin-top: 20px; margin-bottom: 20px">
-      <option v-for="city in cities" :key="city" :value="city">
-        {{ city }}
-      </option>
-    </select>
-    <input
-        v-model="newCity"
-        placeholder="Enter new city name"
-        class="form-control"
+    <SelectComponent
+        v-model="selectedCity"
+        :options="cities"
+        @change="fetchWeather"
     />
-    <button @click="addCity" class="btn btn-outline-primary" style="margin-top: 20px; margin-bottom: 20px">Add City</button>
+    <InputWithButton
+        :placeholder="'Enter new city name'"
+        :buttonText="'Add City'"
+        @click="handleAddCity"
+    />
 
     <div v-if="weatherData[selectedCity]">
-      <h4>{{ selectedCity }}</h4>
-      <p>Температура: {{ weatherData[selectedCity].main.temp }}°C</p>
-      <p>Ощущается как: {{ weatherData[selectedCity].main.feels_like }}°C</p>
-      <p>Минимальная: {{ weatherData[selectedCity].main.temp_min }}°C</p>
-      <p>Максимальная: {{ weatherData[selectedCity].main.temp_max }}°C</p>
-      <p>Состояние: {{ weatherData[selectedCity].weather[0].description }}</p>
-      <p>Видимость: {{ weatherData[selectedCity].visibility }} метров</p>
-      <button @click="removeCity(selectedCity.toString())" class="btn btn-outline-danger">Delete current city</button>
+      <WeatherComponent :city="selectedCity" :weather="weatherData[selectedCity]"/>
     </div>
 
     <div v-else>
-      <p>Loading weather data...</p>
+      <LoadingComponent :message="'Loading weather data...'"/>
     </div>
-    <div v-if="error" class="alert alert-danger">
-      <p>Error: {{ error }}</p>
-    </div>
+    <button @click="removeCity(selectedCity.toString())" class="btn btn-outline-danger">Delete current city</button>
+    <ErrorComponent v-if="error" :message="error" />
   </div>
 </template>
 
@@ -37,8 +28,13 @@
 import { defineComponent, ref, onMounted, onUnmounted } from 'vue';
 import { useWeatherStore } from '@/stores/WeatherStore';
 import { weatherObservable, searchWeather } from '@/services/weatherService';
+import ErrorComponent from "@/components/ErrorComponent.vue";
+import LoadingComponent from "@/components/LoadingComponent.vue";
+import WeatherComponent from "@/components/WeatherComponent.vue";
+import SelectComponent from "@/components/SelectComponent.vue";
 
 export default defineComponent({
+  components: {SelectComponent, WeatherComponent, LoadingComponent, ErrorComponent},
   setup() {
     const weatherStore = useWeatherStore();
     const newCity = ref('');
@@ -57,16 +53,16 @@ export default defineComponent({
         error.value = err.message;
       },
     });
-    const addCity = () => {
+    const handleAddCity = (cityName: string) => {
       try {
-        weatherStore.addCity(newCity.value.trim());
-        searchWeather(newCity.value.trim());
-        newCity.value = '';
+        const trimmedCity = cityName.trim();
+        weatherStore.addCity(trimmedCity);
+        searchWeather(trimmedCity);
+        selectedCity.value = trimmedCity;
       } catch (e) {
-        error.value = e.message;
+        error.value = e.message
       }
-    };
-
+    }
     const removeCity = (city: string) => {
       weatherStore.removeCity(city);
     };
@@ -86,7 +82,7 @@ export default defineComponent({
     return {
       newCity,
       error,
-      addCity,
+      handleAddCity,
       removeCity,
       cities: weatherStore.cities,
       selectedCity,

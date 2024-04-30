@@ -2,7 +2,7 @@ import {catchError, debounceTime, filter, from, interval, map, of, retry, startW
 import axios from 'axios';
 
 const searchSubject = new Subject<string>();
-const autoRefresh$ = interval(5000);
+const autoRefresh$ = interval(20000);
 
 export const weatherObservable = searchSubject.pipe(
     debounceTime(500),
