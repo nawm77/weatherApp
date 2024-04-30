@@ -86,7 +86,7 @@ export default defineComponent({
       handleAddCity,
       removeCity,
       cities: weatherStore.cities,
-      selectedCity: weatherStore.cities[0],
+      selectedCity,
       fetchWeather,
       weatherData: weatherStore.weatherData,
     };
