@@ -2,7 +2,7 @@ import {catchError, debounceTime, filter, from, interval, map, of, retry, startW
 import axios from 'axios';
 
 const searchSubject = new Subject<string>();
-const autoRefresh$ = interval(1000);
+const autoRefresh$ = interval(5000);
 
 export const weatherObservable = searchSubject.pipe(
     debounceTime(500),
@@ -15,7 +15,10 @@ export const weatherObservable = searchSubject.pipe(
                 from(
                     axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=6a894d1090603dd16941ed17f1d98b5a&units=metric&lang=ru`)
                 ).pipe(
-                    map((response) => response.data),
+                    map((response) => {
+                        console.log('Received response for city ' + city)
+                        return response.data
+                    }),
                     catchError((error) => of({ error: true, message: error.response?.data?.message || 'An unexpected error occurred' })),
                     retry(3)
                 )
