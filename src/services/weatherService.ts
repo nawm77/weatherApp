@@ -1,10 +1,8 @@
-import {Subject, of, interval, from} from "rxjs";
-import {debounceTime, switchMap, catchError, map, startWith, retry, filter} from "rxjs";
-import { useWeatherStore } from '../stores/WeatherStore'
+import {catchError, debounceTime, filter, from, interval, map, of, retry, startWith, Subject, switchMap} from "rxjs";
 import axios from 'axios';
 
 const searchSubject = new Subject<string>();
-const autoRefresh$ = interval(2000);
+const autoRefresh$ = interval(10000);
 
 export const weatherObservable = searchSubject.pipe(
     debounceTime(500),
