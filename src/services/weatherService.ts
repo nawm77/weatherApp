@@ -1,5 +1,6 @@
 import {Subject, of, interval, from} from "rxjs";
 import {debounceTime, switchMap, catchError, map, startWith, retry, filter} from "rxjs";
+import { useWeatherStore } from '../stores/WeatherStore'
 import axios from 'axios';
 
 const searchSubject = new Subject<string>();
@@ -14,7 +15,7 @@ export const weatherObservable = searchSubject.pipe(
             startWith(0),
             switchMap(() =>
                 from(
-                    axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=81592fd082211aafdeee651e9fc04176&units=metric&lang=ru`)
+                    axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=6a894d1090603dd16941ed17f1d98b5a&units=metric&lang=ru`)
                 ).pipe(
                     map((response) => response.data),
                     catchError((error) => of({ error: true, message: error.response?.data?.message || 'An unexpected error occurred' })),

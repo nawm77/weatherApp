@@ -1,63 +1,35 @@
-// import { defineStore } from 'pinia';
-// import { weatherSearchResults$, getWeather } from '../services/weatherService';
-// import { ref, watchEffect } from 'vue';
-// import { useStorage } from '@vueuse/core';
-//
-// export const useWeatherStore = defineStore('weather', {
-//     state: () => ({
-//         cities: useStorage<string[]>('recentCities', []),
-//         weatherData: ref(null),
-//         weatherError: ref(null),
-//         loading: ref(false),
-//     }),
-//     actions: {
-//         addCity(city: string) {
-//             if (!this.cities.includes(city)) {
-//                 this.cities.push(city);
-//                 getWeather(city);
-//             }
-//         },
-//
-//         removeCity(city: string) {
-//             const index = this.cities.indexOf(city);
-//             if (index > -1) {
-//                 this.cities.splice(index, 1);
-//             }
-//         },
-//     },
-// });
-
-
-import { useStorage } from '@vueuse/core'; // Для персистентности данных
 import { defineStore } from 'pinia';
-import { weatherSearchResults$, getWeather } from '../services/weatherService';
+import { useStorage } from '@vueuse/core';
 import { ref } from 'vue';
+import { searchWeather } from '../services/weatherService';
 
 export const useWeatherStore = defineStore('weather', {
     state: () => ({
-        cities: useStorage<string[]>('recentCities', []), // Персистентный список городов
-        weatherData: useStorage<Record<string, any>>('weatherData', {}), // Персистентное хранилище данных о погоде
-        weatherError: ref(null),
-        loading: ref(false),
+        cities: useStorage<string[]>('cities', []),
+        weatherData: ref<Record<string, any>>({})
     }),
     actions: {
         addCity(city: string) {
             if (!this.cities.includes(city)) {
-                this.cities.push(city); // Добавляем новый город
-                getWeather(city); // Запускаем запрос о погоде для нового города
+                this.cities.push(city);
+                console.log("Add city: " + city);
+                console.log("All cities " + this.cities)
+                console.log("All data " + this.weatherData)
+                searchWeather(city);
             } else {
-                throw new Error("City already exists"); // Валидация на уникальность
+                throw new Error("City already exists");
             }
         },
         removeCity(city: string) {
             const index = this.cities.indexOf(city);
             if (index > -1) {
-                this.cities.splice(index, 1); // Удаляем город из списка
-                delete this.weatherData[city]; // Удаляем данные о погоде для этого города
+                this.cities.splice(index, 1);
+                delete this.weatherData[city];
             }
         },
-        updateWeather(city: string, data: any) {
-            this.weatherData[city] = data; // Обновляем данные о погоде
+        updateWeatherData(city: string, data: any) {
+            console.log("Data " + data.main.temp)
+            this.weatherData[city] = data;
         },
     },
 });

@@ -1,16 +1,28 @@
 <template>
   <div>
-    <h3>Weather Information</h3>
-    <form @submit.prevent="handleSubmit">
-      <input v-model="city" placeholder="Enter city name" />
-      <button type="submit">Search</button>
-    </form>
-    <div v-if="weather">
-      <h3>Погода в {{ weather.name }}</h3>
-      <p>Температура {{ weather.main.temp }}°C</p>
-      <p>Состояние: {{ weather.weather[0].description }}</p>
-      <p>Видимость {{ weather.visibility }} метров</p>
-    </div>
+    <h3>Weather Information for Cities</h3>
+    <input
+        v-model="newCity"
+        placeholder="Enter city name"
+    />
+    <button @click="addCity">Add City</button>
+    <ul>
+      <li v-for="city in cities">
+        <h4>{{ city }}</h4>
+        <div v-if="weatherData[city]">
+          <p>Температура: {{ weatherData[city].main.temp }}°C</p>
+          <p>Ощущается как: {{ weatherData[city].main.feels_like }}°C</p>
+          <p>Минимальная: {{ weatherData[city].main.temp_min }}°C</p>
+          <p>Максимальная: {{ weatherData[city].main.temp_max }}°C</p>
+          <p>Состояние: {{ weatherData[city].weather[0].description }}</p>
+          <p>Видимость: {{ weatherData[city].visibility }} метров</p>
+        </div>
+        <div v-else>
+          <p>Loading weather data...</p>
+        </div>
+        <button @click="removeCity(city)">Remove</button>
+      </li>
+    </ul>
     <div v-if="error">
       <p>Error: {{ error }}</p>
     </div>
@@ -18,45 +30,64 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watchEffect } from 'vue';
+import {defineComponent, onMounted, onUnmounted, ref, watchEffect} from 'vue';
 import { weatherObservable, searchWeather } from '@/services/weatherService';
+import { useWeatherStore } from '@/stores/WeatherStore';
 
 export default defineComponent({
   setup() {
-    const city = ref('');
-    const weather = ref(null);
+    const weatherStore = useWeatherStore();
+    const newCity = ref('');
     const error = ref(null);
-    const handleSubmit = () => {
-      if (city.value.trim()) {
-        searchWeather(city.value.trim());
+    const subscription = weatherObservable.subscribe({
+      next: (data) => {
+        if (data.error) {
+          error.value = data.message;
+        } else {
+          weatherStore.updateWeatherData(data.name, data);
+          error.value = null;
+        }
+      },
+      error: (err) => {
+        error.value = err.message;
+      },
+    });
+    const addCity = () => {
+      try {
+        weatherStore.addCity(newCity.value.trim());
+        searchWeather(newCity.value.trim());
+        newCity.value = '';
+      } catch (e) {
+        error.value = e.message;
       }
     };
-    watchEffect(() => {
-      const subscription = weatherObservable.subscribe({
-        next: (data) => {
-          console.log("Sent request")
-          if (data.error) {
-            error.value = data.message;
-          } else {
-            weather.value = data;
-            error.value = null;
-          }
-        },
-        error: (err) => {
-          error.value = err.message;
-        },
+    const removeCity = (city: string) => {
+      weatherStore.removeCity(city);
+    };
+    const fetchData = () => {
+      weatherStore.cities.forEach((c) => {
+        searchWeather(c);
       });
+    }
 
-      return () => {
-        subscription.unsubscribe();
-      };
+    onMounted(() => {
+      weatherStore.cities.forEach((c) => {
+        console.log("Subscribe " + c)
+        searchWeather(c);
+      });
     });
+    onUnmounted(() => {
+      subscription.unsubscribe();
+    })
 
     return {
-      city,
-      weather,
+      weatherStore,
+      newCity,
+      weatherData: weatherStore.weatherData,
       error,
-      handleSubmit,
+      addCity,
+      removeCity,
+      cities: weatherStore.cities,
     };
   },
 });
