@@ -13,6 +13,8 @@ export const useWeatherStore = defineStore('weather', {
             if (!this.cities.includes(city)) {
                 this.cities.push(city);
                 console.log("Add city: " + city);
+                console.log("All cities " + this.cities)
+                console.log("All data " + this.weatherData)
                 searchWeather(city);
             } else {
                 throw new Error("City already exists");
@@ -26,6 +28,7 @@ export const useWeatherStore = defineStore('weather', {
             }
         },
         updateWeatherData(city: string, data: any) {
+            console.log("Data " + data + " for city " + city);
             this.weatherData[city] = data;
         },
     },

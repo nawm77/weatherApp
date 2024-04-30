@@ -20,7 +20,7 @@
         <div v-else>
           <p>Loading weather data...</p>
         </div>
-        <button @click="removeCity(city)">Remove</button>
+        <button @click="removeCity(city)" class="btn-primary">Remove</button>
       </li>
     </ul>
     <div v-if="error">
@@ -44,6 +44,7 @@ export default defineComponent({
         if (data.error) {
           error.value = data.message;
         } else {
+          console.log("Update weather data for " + data.name)
           weatherStore.updateWeatherData(data.name, data);
           error.value = null;
         }
