@@ -4,6 +4,7 @@
     <SelectComponent
         v-model="selectedCity"
         :options="cities"
+        :selected-city="selectedCity"
         @change="fetchWeather"
     />
     <InputWithButton
@@ -85,7 +86,7 @@ export default defineComponent({
       handleAddCity,
       removeCity,
       cities: weatherStore.cities,
-      selectedCity,
+      selectedCity: weatherStore.cities[0],
       fetchWeather,
       weatherData: weatherStore.weatherData,
     };
