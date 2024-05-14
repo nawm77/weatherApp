@@ -45,12 +45,14 @@ export default defineComponent({
       next: (data) => {
         if (data.error) {
           error.value = data.message;
+          this.showMessage(error.value)
         } else {
           weatherStore.updateWeatherData(data.name, data);
           error.value = null;
         }
       },
       error: (err) => {
+        this.showMessage(error.value)
         error.value = err.message;
       },
     });
@@ -62,6 +64,7 @@ export default defineComponent({
         selectedCity.value = trimmedCity;
       } catch (e) {
         error.value = e.message
+        this.showMessage(error.value)
       }
     }
     const removeCity = (city: string) => {
@@ -91,5 +94,14 @@ export default defineComponent({
       weatherData: weatherStore.weatherData,
     };
   },
+  methods: {
+    showMessage(message: string) {
+      this.$flashMessage.show({
+        type: 'error',
+        title: 'Error',
+        text: message
+      });
+    }
+  }
 });
 </script>
